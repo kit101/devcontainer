@@ -3,6 +3,7 @@
 enable_dockerd=${DOCKERD_ENABLE:-false}
 enable_sshd=${SSHD_ENABLE:-true}
 dockerd_args=${DOCKERD_ARGS:-""}
+debug_mode=${DEBUG_MODE:-false}
 
 # 检查是否启用 dockerd 并且 dockerd 可执行
 if [[ "$enable_dockerd" == "true" && -x "$(command -v dockerd)" ]]; then
@@ -25,9 +26,18 @@ fi
 # 启动 sshd
 /usr/sbin/sshd -D &
 
-# 若没有传递参数，则执行 sleep infinity，否则执行传递的命令
-if [ $# -eq 0 ]; then
-    sleep infinity
-else
-    exec "$@"
+# 将第一个参数作为脚本执行
+if [ $# -ne 0 ]; then
+    echo '-------------------------------------------------' 
+    echo 'The first parameter will be executed as a script'
+    if [ "$debug_mode" == "true" ]; then
+        echo ''
+        echo -e "$1" 
+        echo ''
+    fi
+    echo '-------------------------------------------------' 
+    echo ''
+    echo -e "$1" | bash
 fi
+
+sleep infinity
