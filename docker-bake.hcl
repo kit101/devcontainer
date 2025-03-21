@@ -26,4 +26,5 @@ target "matrix" {
   context  = "."
   tags     = ["${repository}:${service}"]
   inherits = ["_common"]
+  target   = "${service}"
 }
