@@ -19,7 +19,7 @@ RUN echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] http://
 RUN apt-get update && apt-get install -y docker-ce-cli
 ENV DOCKER_HOST=unix:///var/run/docker.sock
 ENV SHELL=/bin/bash
-ENTRYPOINT ["sudo", "/usr/local/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 USER devcontainer
 WORKDIR /home/devcontainer
 RUN chown -R devcontainer:devcontainer /home/devcontainer

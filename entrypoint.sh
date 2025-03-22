@@ -8,12 +8,12 @@ debug_mode=${DEBUG_MODE:-false}
 # 检查是否启用 dockerd 并且 dockerd 可执行
 if [[ "$enable_dockerd" == "true" && -x "$(command -v dockerd)" ]]; then
     # 启动 dockerd
-    dockerd $dockerd_args &
+    sudo dockerd $dockerd_args &
     
     # 等待 dockerd 启动
     max_attempts=150
     for ((attempt = 1; attempt <= max_attempts; attempt++)); do
-        docker info
+        sudo docker info
         exit_status=$?
         if [ $exit_status -eq 0 ]; then
             break
@@ -24,7 +24,7 @@ if [[ "$enable_dockerd" == "true" && -x "$(command -v dockerd)" ]]; then
 fi
 
 # 启动 sshd
-/usr/sbin/sshd -D &
+sudo /usr/sbin/sshd -D &
 
 # 将第一个参数作为脚本执行
 if [ $# -ne 0 ]; then
