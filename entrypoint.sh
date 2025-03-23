@@ -4,6 +4,15 @@ enable_dockerd=${DOCKERD_ENABLE:-false}
 enable_sshd=${SSHD_ENABLE:-true}
 dockerd_args=${DOCKERD_ARGS:-""}
 debug_mode=${DEBUG_MODE:-false}
+devcontainer_password=${DEVCONTAINER_USER_PASSWORD:-""}
+
+# 初始化密码
+if [ "$DEVCONTAINER_USER_PASSWORD" != "" ]; then
+    echo "devcontainer:$DEVCONTAINER_USER_PASSWORD" | sudo chpasswd
+    if [ "$debug_mode" == "true" ]; then
+        echo "devcontainer's password has been changed."
+    fi
+fi
 
 # 检查是否启用 dockerd 并且 dockerd 可执行
 if [[ "$enable_dockerd" == "true" && -x "$(command -v dockerd)" ]]; then
