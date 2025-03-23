@@ -22,7 +22,7 @@ ENV SHELL=/bin/bash
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 USER devcontainer
 WORKDIR /home/devcontainer
-RUN chown -R devcontainer:devcontainer /home/devcontainer
+RUN sudo chown -R devcontainer:devcontainer /home/devcontainer
 
 
 #
@@ -62,8 +62,8 @@ RUN JABBA_VERSION=0.11.2 curl -sL https://github.com/shyiko/jabba/raw/master/ins
 
 # contain all programming language environment
 FROM base AS max
-COPY --from=node    /home/devcontainer/.nvm     /home/devcontainer/.nvm
-COPY --from=golang  /home/devcontainer/.g       /home/devcontainer/.g
-COPY --from=java    /home/devcontainer/.jabba   /home/devcontainer/.jabba
-COPY .bashrc /home/devcontainer/.bashrc
+COPY --chown=devcontainer:devcontainer --from=node    /home/devcontainer/.nvm     /home/devcontainer/.nvm
+COPY --chown=devcontainer:devcontainer --from=golang  /home/devcontainer/.g       /home/devcontainer/.g
+COPY --chown=devcontainer:devcontainer --from=java    /home/devcontainer/.jabba   /home/devcontainer/.jabba
+COPY --chown=devcontainer:devcontainer .bashrc        /home/devcontainer/.bashrc
 RUN sudo apt install busybox -y && sudo busybox --install /usr/local/bin
