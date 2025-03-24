@@ -67,3 +67,5 @@ COPY --chown=devcontainer:devcontainer --from=golang  /home/devcontainer/.g     
 COPY --chown=devcontainer:devcontainer --from=java    /home/devcontainer/.jabba   /home/devcontainer/.jabba
 COPY --chown=devcontainer:devcontainer .bashrc        /home/devcontainer/.bashrc
 RUN sudo apt install busybox -y && sudo busybox --install /usr/local/bin
+COPY --chown=devcontainer:devcontainer .profile        /home/devcontainer/.profile
+ENV BASH_ENV=/home/devcontainer/.profile 
