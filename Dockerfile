@@ -3,27 +3,35 @@ FROM debian:12 AS base
 RUN sed -i 's|http://deb.debian.org/debian|http://mirrors.aliyun.com/debian|g' /etc/apt/sources.list.d/debian.sources && \
     sed -i 's|http://deb.debian.org/debian-security|http://mirrors.aliyun.com/debian-security|g' /etc/apt/sources.list.d/debian.sources && \
     apt update
-RUN apt install -y apt-transport-https ca-certificates curl gnupg lsb-release openssh-server rsync cmake git sudo
-
-# 创建 devcontainer 用户并赋予 sudo 权限
+RUN apt install -y \
+    openssh-server apt-transport-https ca-certificates gnupg lsb-release sudo \
+    rsync cmake git curl busybox
+RUN busybox --install /usr/local/bin
+# sshd
+RUN mkdir -p /var/run/sshd
+COPY sshd_config /etc/ssh/sshd_config
+# docker client
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] http://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+RUN apt update && apt install -y docker-ce-cli
+ENV DOCKER_HOST=unix:///var/run/docker.sock
+# entrypoint.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+# devcontainer: sudo, bashrc, profile
 RUN useradd -m -s /bin/bash devcontainer && \
     echo "devcontainer:devcontainer" | chpasswd && \
     usermod -aG sudo devcontainer && \
     echo "devcontainer ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/devcontainer
-RUN mkdir -p /var/run/sshd
-COPY sshd_config /etc/ssh/sshd_config
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
-RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-RUN echo "deb [signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] http://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
-RUN apt-get update && apt-get install -y docker-ce-cli
-ENV DOCKER_HOST=unix:///var/run/docker.sock
-ENV SHELL=/bin/bash
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 USER devcontainer
 WORKDIR /home/devcontainer
 RUN sudo chown -R devcontainer:devcontainer /home/devcontainer
-
+COPY --chown=devcontainer:devcontainer .bashrc                  /home/devcontainer/.bashrc
+COPY --chown=devcontainer:devcontainer .profile                 /home/devcontainer/.profile
+COPY --chown=devcontainer:devcontainer .devcontainer.profile    /home/devcontainer/.devcontainer.profile
+ENV SHELL=/bin/bash
+ENV BASH_ENV=/home/devcontainer/.profile
 
 #
 # programming language environment
@@ -65,8 +73,3 @@ FROM base AS max
 COPY --chown=devcontainer:devcontainer --from=node    /home/devcontainer/.nvm     /home/devcontainer/.nvm
 COPY --chown=devcontainer:devcontainer --from=golang  /home/devcontainer/.g       /home/devcontainer/.g
 COPY --chown=devcontainer:devcontainer --from=java    /home/devcontainer/.jabba   /home/devcontainer/.jabba
-COPY --chown=devcontainer:devcontainer .bashrc        /home/devcontainer/.bashrc
-RUN sudo apt install busybox -y && sudo busybox --install /usr/local/bin
-COPY --chown=devcontainer:devcontainer .profile        /home/devcontainer/.profile
-COPY --chown=devcontainer:devcontainer .devcontainer.profile        /home/devcontainer/.devcontainer.profile
-ENV BASH_ENV=/home/devcontainer/.profile 
